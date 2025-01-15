@@ -276,51 +276,53 @@ def evaluate_squat(frame, landmarks, width, height, data):
     knee2_y = landmarks[mp_pose.PoseLandmark.RIGHT_KNEE].y
     data=load_data('project_me/squat_Lside.csv')
     # shoulder_y 값을 기준으로 자세 평가 구분
-    if shoulder_y > data[0]['Left Shoulder y'][0]:  # 스쿼트 중간 자세로 분류되는 높이 기준
+    if shoulder_y <= data[0]['Left Shoulder y'][0]:  # 스쿼트 중간 자세로 분류되는 높이 기준
+        # shoulder_y <= 0.4: 스쿼트 처음 자세로 분류되는 높이 기준
+        # 스쿼트 처음 자세 평가
+        if shoulder_y <= data[0]['Left Shoulder y'][0] + 0.1 and \
+        shoulder_y >= data[0]['Left Shoulder y'][0] - 0.1 and \
+        shoulder2_y <= data[1]['Right Shoulder y'][0] + 0.1 and \
+        shoulder2_y >= data[1]['Right Shoulder y'][0] - 0.1 and \
+        knee_y <= data[4]['Left Knee y'][0] + 0.1 and \
+        knee_y >= data[4]['Left Knee y'][0] - 0.1 and \
+        knee2_y <= data[5]['Right Knee y'][0] + 0.1 and \
+        knee2_y >= data[5]['Right Knee y'][0] - 0.1:
+            cv2.putText(frame, 'PERFECT (Start)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+        elif shoulder_y < data[0]['Left Shoulder y'][0] + 0.15 and \
+        shoulder_y > data[0]['Left Shoulder y'][0] - 0.15 and \
+        shoulder2_y < data[1]['Right Shoulder y'][0] + 0.15 and \
+        shoulder2_y > data[1]['Right Shoulder y'][0] - 0.15 and \
+        knee_y < data[4]['Left Knee y'][0] + 0.15 and \
+        knee_y > data[4]['Left Knee y'][0] - 0.15 and \
+        knee2_y < data[5]['Right Knee y'][0] + 0.15 and \
+        knee2_y > data[5]['Right Knee y'][0] - 0.15:
+            cv2.putText(frame, 'GOOD (Start)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
+        else:
+            cv2.putText(frame, 'BAD (Start)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+    else:    
         # 스쿼트 중간 자세 평가
-        if hip_y < max(data[2]['Left Hip y']) + 0.15 and \
-           hip_y > max(data[2]['Left Hip y']) - 0.15 and \
-           hip2_y < max(data[3]['Right Hip y']) + 0.1 and \
-           hip2_y > max(data[3]['Right Hip y']) - 0.15 and \
-           knee_y < max(data[4]['Left Knee y']) + 0.15 and \
-           knee_y > max(data[4]['Left Knee y']) - 0.15 and \
-           knee2_y < max(data[5]['Right Knee y']) + 0.15 and \
-           knee2_y > max(data[5]['Right Knee y']) - 0.15:
+        if hip_y <= max(data[2]['Left Hip y']) + 0.15 and \
+        hip_y >= max(data[2]['Left Hip y']) - 0.15 and \
+        hip2_y <= max(data[3]['Right Hip y']) + 0.15 and \
+        hip2_y >= max(data[3]['Right Hip y']) - 0.15 and \
+        knee_y <= max(data[4]['Left Knee y']) + 0.15 and \
+        knee_y >= max(data[4]['Left Knee y']) - 0.15 and \
+        knee2_y <= max(data[5]['Right Knee y']) + 0.15 and \
+        knee2_y >= max(data[5]['Right Knee y']) - 0.15:
+            cv2.putText(frame, 'PERFECT (Mid)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+        elif hip_y < max(data[2]['Left Hip y']) + 0.2 and \
+        hip_y > max(data[2]['Left Hip y']) - 0.2 and \
+        hip2_y < max(data[3]['Right Hip y']) + 0.2 and \
+        hip2_y > max(data[3]['Right Hip y']) - 0.2 and \
+        knee_y < max(data[4]['Left Knee y']) + 0.2 and \
+        knee_y > max(data[4]['Left Knee y']) - 0.2 and \
+        knee2_y < max(data[5]['Right Knee y']) + 0.2 and \
+        knee2_y > max(data[5]['Right Knee y']) - 0.2:
             cv2.putText(frame, 'GOOD (Mid)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
-        elif hip_y <= max(data[2]['Left Hip y']) + 0.08 and \
-             hip_y >= max(data[2]['Left Hip y']) - 0.08 and \
-             hip2_y <= max(data[3]['Right Hip y']) + 0.08 and \
-             hip2_y >= max(data[3]['Right Hip y']) - 0.08 and \
-             knee_y <= max(data[4]['Left Knee y']) + 0.08 and \
-             knee_y >= max(data[4]['Left Knee y']) - 0.08 and \
-             knee2_y <= max(data[5]['Right Knee y']) + 0.08 and \
-             knee2_y >= max(data[5]['Right Knee y']) - 0.08:
-            cv2.putText(frame, 'PERFECT (Mid)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
         else:
             cv2.putText(frame, 'BAD (Mid)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
 
-    else:  # shoulder_y <= 0.4: 스쿼트 처음 자세로 분류되는 높이 기준
-        # 스쿼트 처음 자세 평가
-        if shoulder_y < data[0]['Left Shoulder y'][0] + 0.15 and \
-           shoulder_y > data[0]['Left Shoulder y'][0] - 0.15 and \
-           shoulder2_y < data[1]['Right Shoulder y'][0] + 0.15 and \
-           shoulder2_y > data[1]['Right Shoulder y'][0] - 0.15 and \
-           knee_y < data[4]['Left Knee y'][0] + 0.15 and \
-           knee_y > data[4]['Left Knee y'][0] - 0.15 and \
-           knee2_y < data[5]['Right Knee y'][0] + 0.15 and \
-           knee2_y > data[5]['Right Knee y'][0] - 0.15:
-            cv2.putText(frame, 'GOOD (Start)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
-        elif shoulder_y <= data[0]['Left Shoulder y'][0] + 0.08 and \
-             shoulder_y >= data[0]['Left Shoulder y'][0] - 0.08 and \
-             shoulder2_y <= data[1]['Right Shoulder y'][0] + 0.08 and \
-             shoulder2_y >= data[1]['Right Shoulder y'][0] - 0.08 and \
-             knee_y <= data[4]['Left Knee y'][0] + 0.08 and \
-             knee_y >= data[4]['Left Knee y'][0] - 0.08 and \
-             knee2_y <= data[5]['Right Knee y'][0] + 0.08 and \
-             knee2_y >= data[5]['Right Knee y'][0] - 0.08:
-            cv2.putText(frame, 'PERFECT (Start)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-        else:
-            cv2.putText(frame, 'BAD (Start)', (10,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+      
 
     return frame
 
