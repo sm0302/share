@@ -425,6 +425,9 @@ def data_load(data_path):
 # 웹캠 열기
 cap = cv2.VideoCapture(0)
 
+cv2.namedWindow('MediaPipe Pose', cv2.WND_PROP_FULLSCREEN)
+cv2.setWindowProperty('MediaPipe Pose', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -481,6 +484,7 @@ while cap.isOpened():
                 landmarks[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].z,
             ],
         }
+        frame = cv2.resize(frame, (1000, 700), interpolation=cv2.INTER_AREA)
 
         # 화면 크기 가져오기
         height, width, _ = frame.shape
