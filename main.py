@@ -376,7 +376,7 @@ class SquatDataRecorder:
                 # 피드백 메시지 출력
                 feedback_messages=[]
                 feedback_messages = feedback(user_coordinates)
-                # frame = show_feedback(frame,feedback_messages)
+                frame = show_feedback(frame,feedback_messages)
                 
                 # 평가 점수 계산
                 
@@ -435,7 +435,7 @@ class SquatDataRecorder:
         elapsed_time = (datetime.now() - self.start_time).total_seconds()
         self.out.write(frame)
 
-        if elapsed_time >= 5.0:
+        if elapsed_time >= 10.0:
             self._save_recording()
 
     def _save_recording(self):
@@ -452,7 +452,7 @@ class SquatDataRecorder:
         csv_filename = current_video_filename.replace('.mp4', '_pose_data.csv')
         current_data = self.side_data if self.recording_count == 1 else self.front_data
         
-        self._save_csv_file(csv_filename, current_data)
+        # self._save_csv_file(csv_filename, current_data)
         
         if self.recording_count == 1:
             self.side_csv_filename = csv_filename
@@ -464,26 +464,26 @@ class SquatDataRecorder:
             print("'a'를 누르면 분석을 시작합니다.")
             print("'q'를 누르면 종료합니다.")
 
-    def _save_csv_file(self, filename, data):
-        """CSV 파일로 데이터 저장"""
-        with open(filename, mode='w', newline='') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            header = ['Frame']
-            for joint in ['Left Shoulder', 'Right Shoulder', 'Left Hip', 'Right Hip',
-                        'Left Knee', 'Right Knee', 'Left Ankle', 'Right Ankle',
-                        'Left Heel', 'Right Heel', 'Left Foot Index', 'Right Foot Index']:
-                header.extend([f'{joint} x', f'{joint} y', f'{joint} z'])
-            csv_writer.writerow(header)
+    # def _save_csv_file(self, filename, data):
+    #     """CSV 파일로 데이터 저장"""
+    #     with open(filename, mode='w', newline='') as csv_file:
+    #         csv_writer = csv.writer(csv_file)
+    #         header = ['Frame']
+    #         for joint in ['Left Shoulder', 'Right Shoulder', 'Left Hip', 'Right Hip',
+    #                     'Left Knee', 'Right Knee', 'Left Ankle', 'Right Ankle',
+    #                     'Left Heel', 'Right Heel', 'Left Foot Index', 'Right Foot Index']:
+    #             header.extend([f'{joint} x', f'{joint} y', f'{joint} z'])
+    #         csv_writer.writerow(header)
             
-            for row in sorted(data, key=lambda x: x[0]):
-                csv_writer.writerow(row)
-        print(f"CSV 파일 저장 완료: {filename}")
+    #         for row in sorted(data, key=lambda x: x[0]):
+    #             csv_writer.writerow(row)
+    #     print(f"CSV 파일 저장 완료: {filename}")
 
     def _display_status(self, frame):
         """화면에 현재 상태 표시"""
         if self.recording:
             elapsed = (datetime.now() - self.start_time).total_seconds()
-            status_text = f"Recording... {5-elapsed:.1f}s"
+            status_text = f"Recording... {10-elapsed:.1f}s"
         else:
             if self.recording_count == 0:
                 status_text = "Side view recording standby..."
