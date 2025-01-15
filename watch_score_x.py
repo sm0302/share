@@ -9,37 +9,22 @@ from PIL import Image, ImageDraw, ImageFont
 class SquatEvaluation:
     def __init__(self, user_coordinates):
         self.df_my_side = user_coordinates
-
-        # 가장 아래로 내려갔을 때의 프레임 값 추출
         self.lowest_frame_side = self.find_lowest_frame(self.df_my_side)
         self.lowest_frame_my_side = self.find_lowest_frame(self.df_my_side)
-
-        # 가장 위로 올라갔을 때의 프레임 값 추출
         self.highest_frame_side = self.find_highest_frame(self.df_my_side)
         self.highest_frame_my_side = self.find_highest_frame(self.df_my_side)
-
-        # 측면 영상이 왼쪽인지 오른쪽인지 판별
         self.side = self.left_or_right(self.df_my_side)
 
-        # 축척 계산
-        # self.scale_side, self.scale_my_side = self.scale(self.df_side, self.df_my_side, self.highest_frame_side, self.highest_frame_my_side)
+    def find_lowest_frame(self, df):
+        return max(df['Left Hip'])
 
-    def find_lowest_frame(self, df): # 가장 아래로 내려갔을 때의 프레임 값 추출
-    
-        max_value = max(df['Left Hip'])
-        return max_value
+    def find_highest_frame(self, df):
+        return min(df['Left Hip'])
 
-    def find_highest_frame(self, df): # 가장 위로 올라갔을 때의 프레임 값 추출
-        min_value = min(df['Left Hip'])
-        return min_value
+    def left_or_right(self, df):
+        return 'Left' if df['Left Hip'] > df['Left Knee'] else 'Right'
 
-    def left_or_right(self, df): # 측면 영상이 왼쪽인지 오른쪽인지 판별
-        if df['Left Hip'] > df['Left Knee']:
-            return 'Left'
-        else:
-            return 'Right'
-
-    def calculate_angle(self,df): # 어깨-골반이 지면과 이루는 각도 계산
+    def calculate_angle(self, df):
         df_lowest_shoulder = df['Left Shoulder']
         df_lowest_hip = df['Left Hip']
 
@@ -51,97 +36,19 @@ class SquatEvaluation:
         vz = z2 - z1
 
         v_magnitude = math.sqrt(vx**2 + vy**2 + vz**2)
-        dot_product = vy # xz 평면의 법선 벡터와 내적
-
-        cos_theta = dot_product / v_magnitude
+        cos_theta = vy / v_magnitude
         theta_radian = math.acos(cos_theta)
-        theta_degree = abs(90 - math.degrees(theta_radian)) # 90도에서 뺀 값을 반환
-        return theta_degree
+        return abs(90 - math.degrees(theta_radian))
 
-    # def calculate_knee_foot(self, df): # 무릎과 발의 위치 비교
-    #     df_lowest_knee = (df['Left Knee'])
-    #     df_lowest_foot = (df['Left Foot Index'])
-
-    #     knee_x = df_lowest_knee.iloc[0][f'{side} Knee x']
-    #     foot_x = df_lowest_foot.iloc[0][f'{side} Foot Index x']
-
-    #     knee_foot_diff = (knee_x - foot_x) if side == 'Left' else (foot_x - knee_x) # 무릎과 발의 좌표 차이 계산
-    #     knee_compare_foot = '뒤' if knee_foot_diff > 0 else '앞' # 무릎이 발보다 앞에 있는지 뒤에 있는지 판별  
-
-    #     return knee_compare_foot, abs(knee_foot_diff) / self.scale_side # 무릎과 발의 좌표 차이를 축척으로 나누어 반환
-
-    def calculate_hip_knee(self,df): # 골반과 무릎의 높이 비교
-
+    def calculate_hip_knee(self, df):
         hip_y = max(df['Left Hip'])
         knee_y = max(df['Left Knee'])
 
-        hip_knee_diff = (hip_y - knee_y) if hip_y > knee_y else (knee_y - hip_y) # 골반과 무릎의 좌표 차이 계산
-        hip_compare_knee = '아래' if hip_y > knee_y else '위' # 골반이 무릎보다 아래에 있는지 위에 있는지 판별  
-
-        return hip_compare_knee, hip_knee_diff # 골반과 무릎의 좌표 차이를 축척으로 나누어 반환
-
-    # def compare_knee_foot_distance(self, df, lowest_frame_front): # 무릎사이의 거리와 발사이의 거리 비교
-    #     df_lowest_knee = df[df['Frame'] == lowest_frame_front][['Left Knee x', 'Right Knee x']]
-    #     df_lowest_foot = df[df['Frame'] == lowest_frame_front][['Left Ankle x', 'Right Ankle x']]
-
-    #     knee_distance = abs(df_lowest_knee.iloc[0]['Left Knee x'] - df_lowest_knee.iloc[0]['Right Knee x'])
-    #     foot_distance = abs(df_lowest_foot.iloc[0]['Left Ankle x'] - df_lowest_foot.iloc[0]['Right Ankle x'])
-
-    #     knee_foot_distance = '벌어' if knee_distance > foot_distance else '좁혀'
-    #     return knee_foot_distance, (knee_distance - foot_distance) / self.scale_front
-
-    # def scale(self, df_side, df_front, highest_frame_side, highest_frame_front):
-    #     shoulder_side_mean = df_side[df_side['Frame'] == highest_frame_side][['Left Shoulder y', 'Right Shoulder y']].mean(axis=1).iloc[0]
-    #     ankle_side_mean = df_side[df_side['Frame'] == highest_frame_side][['Left Ankle y', 'Right Ankle y']].mean(axis=1).iloc[0]
-
-    #     shoulder_front_mean = df_front[df_front['Frame'] == highest_frame_front][['Left Shoulder y', 'Right Shoulder y']].mean(axis=1).iloc[0]
-    #     ankle_front_mean = df_front[df_front['Frame'] == highest_frame_front][['Left Ankle y', 'Right Ankle y']].mean(axis=1).iloc[0]
-
-    #     scale_side = abs(shoulder_side_mean - ankle_side_mean)
-    #     scale_front = abs(shoulder_front_mean - ankle_front_mean)
-
-    #     return scale_side, scale_front
-
-    # def data_analyze(self):
-    #     print("=== 데이터 분석 결과 ===")
-
-    #     # 가장 아래로 내려간 프레임
-    #     print(f'측면 영상 가장 아래 프레임: {self.lowest_frame_side}')
-    #     print(f'정면 영상 가장 아래 프레임: {self.lowest_frame_front}')
-
-    #     # 가장 위로 올라간 프레임
-    #     print(f'측면 영상 가장 위 프레임: {self.highest_frame_side}')
-    #     print(f'정면 영상 가장 위 프레임: {self.highest_frame_front}')
-
-    #     # 방향 판별
-    #     print(f'측면 영상 방향: {self.side}')
-
-    #     # 축척 계산
-    #     print(f'측면 영상 축척: {self.scale_side:.2f}')
-    #     print(f'정면 영상 축척: {self.scale_front:.2f}')
-
-    
-    # def analyze(self):
-    #     print("=== 분석 결과 ===")
-
-    #     # 각도 계산
-    #     angle = self.calculate_angle(self.df_side, self.lowest_frame_side, self.side)
-    #     print(f'허리가 지면과 이루는 각도 : {angle:.2f}도')
-
-    #     # 무릎과 발의 위치 비교
-    #     knee_compare_foot, knee_foot_diff = self.calculate_knee_foot(self.df_side, self.lowest_frame_side, self.side)
-    #     print(f'무릎이 발보다 {abs(knee_foot_diff):.4f}만큼 {knee_compare_foot}에 있습니다.')
-
-    #     # 골반과 무릎의 높이 비교
-    #     hip_compare_knee, hip_knee_diff = self.calculate_hip_knee(self.df_side, self.lowest_frame_side, self.side)
-    #     print(f'골반이 무릎보다 {abs(hip_knee_diff):.4f}만큼 {hip_compare_knee}에 있습니다.')
-
-    #     # 무릎과 발의 거리 비교
-    #     knee_foot_distance, distance_diff = self.compare_knee_foot_distance(self.df_front, self.lowest_frame_front)
-    #     print(f'무릎이 발보다 {abs(distance_diff):.4f}만큼 {knee_foot_distance}져 있습니다.')
+        hip_knee_diff = abs(hip_y - knee_y)
+        hip_compare_knee = '아래' if hip_y > knee_y else '위'
+        return hip_compare_knee, hip_knee_diff
 
     def evaluate(self):
-        print("=== 점수 계산 ===")
         decent_score = 0
 
         angle = self.calculate_angle(self.df_side)
@@ -157,6 +64,7 @@ class SquatEvaluation:
         decent_score += abs(distance_diff + 0.01) * 100 if distance_diff < -0.01 else 0
 
         return round((100 - decent_score), 2)
+
 
 # Mediapipe 초기화
 mp_pose = mp.solutions.pose
@@ -195,7 +103,7 @@ def calculate_accuracy(target_pose, user_pose):
     avg_accuracy = total_accuracy / total_joints
     return avg_accuracy
 def feedback(a):
-        print("=== 자세 피드백 ===")
+        
         feedback = ""
         evaluator = SquatEvaluation(a)
         angle = evaluator.calculate_angle(a)
@@ -278,46 +186,46 @@ def evaluate_squat(frame, landmarks, width, height, data):
     # shoulder_y 값을 기준으로 자세 평가 구분
     if shoulder_y > data[0]['Left Shoulder y'][0]:  # 스쿼트 중간 자세로 분류되는 높이 기준
         # 스쿼트 중간 자세 평가
-        if hip_y < max(data[2]['Left Hip y']) + 0.1 and \
-           hip_y > max(data[2]['Left Hip y']) - 0.1 and \
-           hip2_y < max(data[3]['Right Hip y']) + 0.1 and \
-           hip2_y > max(data[3]['Right Hip y']) - 0.1 and \
-           knee_y < max(data[4]['Left Knee y']) + 0.1 and \
-           knee_y > max(data[4]['Left Knee y']) - 0.1 and \
-           knee2_y < max(data[5]['Right Knee y']) + 0.1 and \
-           knee2_y > max(data[5]['Right Knee y']) - 0.1:
+        if hip_y < max(data[2]['Left Hip y']) + 0.15 and \
+           hip_y > max(data[2]['Left Hip y']) - 0.15 and \
+           hip2_y < max(data[3]['Right Hip y']) + 0.15 and \
+           hip2_y > max(data[3]['Right Hip y']) - 0.15 and \
+           knee_y < max(data[4]['Left Knee y']) + 0.15 and \
+           knee_y > max(data[4]['Left Knee y']) - 0.15 and \
+           knee2_y < max(data[5]['Right Knee y']) + 0.15 and \
+           knee2_y > max(data[5]['Right Knee y']) - 0.15:
             cv2.putText(frame, 'GOOD (Mid)', (width//2, height//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
-        elif hip_y <= max(data[2]['Left Hip y']) + 0.05 and \
-             hip_y >= max(data[2]['Left Hip y']) - 0.05 and \
-             hip2_y <= max(data[3]['Right Hip y']) + 0.05 and \
-             hip2_y >= max(data[3]['Right Hip y']) - 0.05 and \
-             knee_y <= max(data[4]['Left Knee y']) + 0.05 and \
-             knee_y >= max(data[4]['Left Knee y']) - 0.05 and \
-             knee2_y <= max(data[5]['Right Knee y']) + 0.05 and \
-             knee2_y >= max(data[5]['Right Knee y']) - 0.05:
+        elif hip_y <= max(data[2]['Left Hip y']) + 0.08 and \
+             hip_y >= max(data[2]['Left Hip y']) - 0.08 and \
+             hip2_y <= max(data[3]['Right Hip y']) + 0.08 and \
+             hip2_y >= max(data[3]['Right Hip y']) - 0.08 and \
+             knee_y <= max(data[4]['Left Knee y']) + 0.08 and \
+             knee_y >= max(data[4]['Left Knee y']) - 0.08 and \
+             knee2_y <= max(data[5]['Right Knee y']) + 0.08 and \
+             knee2_y >= max(data[5]['Right Knee y']) - 0.08:
             cv2.putText(frame, 'PERFECT (Mid)', (width//2, height//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
         else:
             cv2.putText(frame, 'BAD (Mid)', (width//2, height//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
 
     else:  # shoulder_y <= 0.4: 스쿼트 처음 자세로 분류되는 높이 기준
         # 스쿼트 처음 자세 평가
-        if shoulder_y < data[0]['Left Shoulder y'][0] + 0.1 and \
-           shoulder_y > data[0]['Left Shoulder y'][0] - 0.1 and \
-           shoulder2_y < data[1]['Right Shoulder y'][0] + 0.1 and \
-           shoulder2_y > data[1]['Right Shoulder y'][0] - 0.1 and \
-           knee_y < data[4]['Left Knee y'][0] + 0.1 and \
-           knee_y > data[4]['Left Knee y'][0] - 0.1 and \
-           knee2_y < data[5]['Right Knee y'][0] + 0.1 and \
-           knee2_y > data[5]['Right Knee y'][0] - 0.1:
+        if shoulder_y < data[0]['Left Shoulder y'][0] + 0.15 and \
+           shoulder_y > data[0]['Left Shoulder y'][0] - 0.15 and \
+           shoulder2_y < data[1]['Right Shoulder y'][0] + 0.15 and \
+           shoulder2_y > data[1]['Right Shoulder y'][0] - 0.15 and \
+           knee_y < data[4]['Left Knee y'][0] + 0.15 and \
+           knee_y > data[4]['Left Knee y'][0] - 0.15 and \
+           knee2_y < data[5]['Right Knee y'][0] + 0.15 and \
+           knee2_y > data[5]['Right Knee y'][0] - 0.15:
             cv2.putText(frame, 'GOOD (Start)', (width//2, height//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
-        elif shoulder_y <= max(data[0]['Left Shoulder y']) + 0.05 and \
-             shoulder_y >= data[0]['Left Shoulder y'][0] - 0.05 and \
-             shoulder2_y <= data[1]['Right Shoulder y'][0] + 0.05 and \
-             shoulder2_y >= data[1]['Right Shoulder y'][0] - 0.05 and \
-             knee_y <= data[4]['Left Knee y'][0] + 0.05 and \
-             knee_y >= data[4]['Left Knee y'][0] - 0.05 and \
-             knee2_y <= data[5]['Right Knee y'][0] + 0.05 and \
-             knee2_y >= data[5]['Right Knee y'][0] - 0.05:
+        elif shoulder_y <= max(data[0]['Left Shoulder y']) + 0.08 and \
+             shoulder_y >= data[0]['Left Shoulder y'][0] - 0.08 and \
+             shoulder2_y <= data[1]['Right Shoulder y'][0] + 0.08 and \
+             shoulder2_y >= data[1]['Right Shoulder y'][0] - 0.08 and \
+             knee_y <= data[4]['Left Knee y'][0] + 0.08 and \
+             knee_y >= data[4]['Left Knee y'][0] - 0.08 and \
+             knee2_y <= data[5]['Right Knee y'][0] + 0.08 and \
+             knee2_y >= data[5]['Right Knee y'][0] - 0.08:
             cv2.putText(frame, 'PERFECT (Start)', (width//2, height//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
         else:
             cv2.putText(frame, 'BAD (Start)', (width//2, height//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
