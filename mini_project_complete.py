@@ -497,7 +497,7 @@ while cap.isOpened():
         # 피드백 메시지 출력
         feedback_messages=[]
         feedback_messages = feedback(user_coordinates)
-        frame = show_feedback(frame, feedback_messages)
+        # frame = show_feedback(frame, feedback_messages)
         
         # 평가 점수 계산
         evaluator = SquatEvaluation(user_coordinates)
