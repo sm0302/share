@@ -1,0 +1,8 @@
+path: C:/yolo_tflite/coco_animals_strict_subset
+train: images/train
+val: images/val
+
+task: segment 
+
+nc: 10  # 클래스 수 (동물 클래스가 10개)
+names: ['bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe']
