@@ -1,0 +1,7 @@
+
+path: C:\yolo_tflite\coco_animals_yolo
+train: images/train
+val: images/val
+
+nc: 10
+names: ['parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear']
